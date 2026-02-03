@@ -20,7 +20,7 @@ export interface IEvent extends Document {
   updatedAt: Date;
 }
 
-const eventSchema = new Schema(
+const eventSchema = new Schema<IEvent>(
   {
     title: {
       type: String,
@@ -110,28 +110,22 @@ const eventSchema = new Schema(
 );
 
 // Pre-save hook for slug generation and data normalization
-eventSchema.pre<IEvent>("save", function (next) {
+eventSchema.pre<IEvent>("save", async function () {
   const event = this as IEvent;
 
-  try {
-    // Generate slug only if title changed or document is new
-    if (event.isModified("title") || event.isNew) {
-      event.slug = generateSlug(event.title);
-    }
+  // Generate slug only if title changed or document is new
+  if (event.isModified("title") || event.isNew) {
+    event.slug = generateSlug(event.title);
+  }
 
-    // Normalize date to ISO format if it's not already
-    if (event.isModified("date")) {
-      event.date = normalizeDate(event.date);
-    }
+  // Normalize date to ISO format if it's not already
+  if (event.isModified("date")) {
+    event.date = normalizeDate(event.date);
+  }
 
-    // Normalize time format (HH:MM)
-    if (event.isModified("time")) {
-      event.time = normalizeTime(event.time);
-    }
-
-    (next as (err?: Error) => void)();
-  } catch (error) {
-    (next as (err?: Error) => void)(error as Error);
+  // Normalize time format (HH:MM)
+  if (event.isModified("time")) {
+    event.time = normalizeTime(event.time);
   }
 });
 
