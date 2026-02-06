@@ -1,10 +1,13 @@
 import BookEvent from "@/components/BookEvent";
+import EventCard from "@/components/EventCard";
+import { IEvent } from "@/database";
+import { getSimilarEventsBySlug } from "@/lib/actions/event.actions";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
-const EventDetialItem = ({
+const EventDetailItem = ({
   icon,
   alt,
   label,
@@ -44,7 +47,7 @@ const EventTags = ({ tags }: { tags: string[] }) => (
   </div>
 );
 
-const EventDetialsPage = async ({
+const EventDetailsPage = async ({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -96,6 +99,8 @@ const EventDetialsPage = async ({
 
   const bookings = 10
 
+  const similarEvents: IEvent[] = await getSimilarEventsBySlug(slug);
+
   return (
     <section id="event">
       <div className="header">
@@ -122,41 +127,41 @@ const EventDetialsPage = async ({
           <section className="flex-col-gap-2">
             <h2>Event Details</h2>
 
-            <EventDetialItem
+            <EventDetailItem
               icon="/icons/calendar.svg"
               alt="Calendar Icon"
               label={date}
             />
-            <EventDetialItem
+            <EventDetailItem
               icon="/icons/clock.svg"
               alt="Clock Icon"
               label={time}
             />
-            <EventDetialItem
+            <EventDetailItem
               icon="/icons/pin.svg"
               alt="Pin Icon"
               label={location}
             />
-            <EventDetialItem
+            <EventDetailItem
               icon="/icons/mode.svg"
               alt="Mode Icon"
               label={mode}
             />
-            <EventDetialItem
+            <EventDetailItem
               icon="/icons/audience.svg"
               alt="Audience Icon"
               label={audience}
             />
           </section>
 
-          <EventAgenda agendaItems={JSON.parse(agenda[0])}></EventAgenda>
+          <EventAgenda agendaItems={agenda}></EventAgenda>
 
           <section className="flex-col-gap-2">
             <h2>About the Organizer</h2>
             <p>{organizer}</p>
           </section>
 
-          <EventTags tags={JSON.parse(tags[0])}></EventTags>
+          <EventTags tags={tags}></EventTags>
         </div>
 
         {/* Right Side - Booking Form */}
@@ -174,8 +179,17 @@ const EventDetialsPage = async ({
        </div>
         </aside>
       </div>
+
+      <div className="flex w-full flex-col gap-4 pt-20">
+        <h2>Similar Events</h2>
+        <div className="events">
+          {similarEvents.length > 0 && similarEvents.map((similarEvent: IEvent) => (
+            <EventCard key={similarEvent.title} {...similarEvent}></EventCard>
+          ))}
+        </div>
+      </div>
     </section>
   );
 };
 
-export default EventDetialsPage;
+export default EventDetailsPage;
